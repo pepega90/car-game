@@ -6,6 +6,7 @@ fn config() -> Conf {
         window_width: 400,
         window_height: 640,
         window_title: "Car Game".to_string(),
+        window_resizable: false,
         ..Default::default()
     }
 }
@@ -37,13 +38,13 @@ impl Player {
     fn update(&mut self) {
         if is_key_down(KeyCode::Right) && self.rect.right() < 357.0
         {
-            self.vx += 3.0;
+            self.vx += 200.0 * get_frame_time();
             self.rot_speed = 100.;
         }
 
         else if is_key_down(KeyCode::Left) && self.rect.left() > 48.0
         {
-            self.vx += -3.0;
+            self.vx += -200.0 * get_frame_time();
             self.rot_speed = -100.;
         }
         else
@@ -91,7 +92,7 @@ impl Tampilkan for Player {
         // oil rect outline
         draw_rectangle_lines(self.oil_rect.x, self.oil_rect.y, 200., self.oil_rect.h, 4.,BLACK);
         if self.oil_rect.w > 0. {
-            self.oil_rect.w -= 0.1;
+            self.oil_rect.w -= 0.03;
         }
         // oil rect
         draw_rectangle(self.oil_rect.x, self.oil_rect.y, self.oil_rect.w, self.oil_rect.h, GREEN);
@@ -113,7 +114,7 @@ struct Car {
 
 impl Car {
     fn update(&mut self, gambar: [Texture2D; 4]){
-        self.y += 3.0;
+        self.y += 2.0;
         
         if self.y > screen_height() {
             self.y = -250.0;
@@ -152,7 +153,7 @@ struct Batu {
 
 impl Batu {
     fn update(&mut self, gambar: [Texture2D; 3]){
-        self.y += 2.0;
+        self.y += 1.0;
         
         if self.y > screen_height() {
             self.y = -80.0;
@@ -194,7 +195,7 @@ struct Oli {
 
 impl Oli {
     fn update(&mut self){
-        self.y += 2.0;
+        self.y += 1.0;
         
         if self.y > screen_height() {
             self.y = -80.0;
@@ -346,7 +347,7 @@ async fn main() {
                 // draw panah
 
                 for i in 0..3 {
-                    list_panah[i].y += 2.0;
+                    list_panah[i].y += 1.0;
                     draw_texture(list_panah[i].img, list_panah[i].x, list_panah[i].y, WHITE);
 
                     if list_panah[i].y > screen_height() {
@@ -379,14 +380,14 @@ async fn main() {
                 player.update();
                 
                 // check jika player kena batu atau kena mobil lain
-                if player.rect.overlaps(&npc.rect) || player.rect.overlaps(&batu.rect) {
+                if player.rect.overlaps(&npc.rect) || player.rect.overlaps(&batu.rect) || player.oil_rect.w < 1. {
                     current_scene = Scene::GAMEOVER;
                     play_sound_once(car_crash);
                     stop_sound(driving_sfx);
                 }
 
                 // check jika player kena oli
-                if player.rect.overlaps(&bensin.rect) {
+                if player.rect.overlaps(&bensin.rect) && player.oil_rect.w < 200. {
                     player.oil_rect.w += 20.;
                     bensin.reset();
                 }
